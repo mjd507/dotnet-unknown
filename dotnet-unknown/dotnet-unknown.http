@@ -1,6 +1,10 @@
 @dotnet_unknown_HostAddress = http://localhost:5083
 
-GET {{dotnet_unknown_HostAddress}}/weatherforecast/
+GET {{dotnet_unknown_HostAddress}}/api/todo
 Accept: application/json
 
 ###
+
+
+POST {{dotnet_unknown_HostAddress}}/api/todo '{"Id":1,"Name":"Jiandong", "IsComplete":true}'
+Content-Type: application/json
