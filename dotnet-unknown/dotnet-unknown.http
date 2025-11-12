@@ -1,0 +1,6 @@
+@dotnet_unknown_HostAddress = http://localhost:5083
+
+GET {{dotnet_unknown_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
