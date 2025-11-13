@@ -6,5 +6,7 @@ Accept: application/json
 ###
 
 
-POST {{dotnet_unknown_HostAddress}}/api/todo '{"Id":1,"Name":"Jiandong", "IsComplete":true}'
+POST {{dotnet_unknown_HostAddress}}/api/todo
 Content-Type: application/json
+
+{"Id":1,"Name":"Jiandong", "IsComplete":true}

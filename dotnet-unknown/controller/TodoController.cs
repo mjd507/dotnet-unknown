@@ -8,9 +8,9 @@ namespace dotnet_unknown.controller;
 [ApiController]
 public class TodoController : ControllerBase
 {
-    private readonly ITodoService _todoService;
+    private readonly TodoService _todoService;
 
-    public TodoController(ITodoService todoService)
+    public TodoController(TodoService todoService)
     {
         _todoService = todoService;
     }

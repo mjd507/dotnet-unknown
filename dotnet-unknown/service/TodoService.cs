@@ -1,8 +1,9 @@
+using dotnet_unknown.exception;
 using dotnet_unknown.model;
 
 namespace dotnet_unknown.service;
 
-public class TodoService : ITodoService
+public class TodoService
 {
     private static readonly List<TodoItem> _items = [];
     private static int _nextId = 1;
