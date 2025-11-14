@@ -6,31 +6,24 @@ namespace dotnet_unknown.controller;
 
 [Route("api/[controller]")]
 [ApiController]
-public class TodoController : ControllerBase
+public class TodoController(TodoService todoService) : ControllerBase
 {
-    private readonly TodoService _todoService;
-
-    public TodoController(TodoService todoService)
-    {
-        _todoService = todoService;
-    }
-
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TodoItem>>> GetAll()
     {
-        return Ok(await _todoService.GetAllAsync());
+        return Ok(await todoService.GetAllAsync());
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<ActionResult<TodoItem>> GetById(int id)
     {
-        return Ok(await _todoService.GetByIdAsync(id));
+        return Ok(await todoService.GetByIdAsync(id));
     }
 
     [HttpPost]
     public async Task<ActionResult<TodoItem>> Create(TodoItem item)
     {
-        var created = await _todoService.CreateAsync(item);
+        var created = await todoService.CreateAsync(item);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
