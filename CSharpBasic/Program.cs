@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using CSharpBasic.OOP;
 using CSharpBasic.TypeSystem;
 
 // record type 
@@ -30,3 +31,16 @@ coords2.X = 1;
 coords2.Y = 1;
 Console.WriteLine($"coords1.X={coords1.X}, coords1.Y={coords1.Y}"); // 0,0
 
+
+// Polymorphism
+List<Shape> shapes =
+[
+    new Circle(),
+    new Rectangle(),
+    new Triangle()
+];
+
+foreach (var shape in shapes)
+{
+    shape.Draw();
+}
