@@ -6,4 +6,5 @@
     </Configurations>
     <Project Path="src/CSharpBasic/CSharpBasic.csproj"/>
     <Project Path="src/Todo-Api/Todo-Api.csproj"/>
+    <Project Path="test/CSharpBasic.Tests/CSharpBasic.Tests.csproj"/>
 </Solution>
