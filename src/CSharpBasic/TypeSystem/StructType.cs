@@ -8,5 +8,4 @@ public class StructType
 
         public int Y { get; set; } = y;
     }
-
 }

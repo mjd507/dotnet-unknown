@@ -21,7 +21,7 @@ public abstract class InterfaceType
     }
 
     // ==============================================
-    
+
     // Internal type that cannot be exposed publicly
     internal class InternalConfiguration
     {
@@ -44,17 +44,17 @@ public abstract class InterfaceType
     // This class shows both implicit and explicit interface implementation
     public class ServiceImplementation : ILoggable, IConfigurable
     {
-        // Implicit implementation works for ILoggable because string is public
-        public void Log(string message)
-        {
-            Console.WriteLine($"Log: {message}");
-        }
-
         // Explicit implementation required for IConfigurable because it uses internal types
         void IConfigurable.Configure(InternalConfiguration config)
         {
             // Implementation here
             Console.WriteLine($"Configured with: {config.Setting}");
+        }
+
+        // Implicit implementation works for ILoggable because string is public
+        public void Log(string message)
+        {
+            Console.WriteLine($"Log: {message}");
         }
 
         // If we tried implicit implementation for IConfigurable, this wouldn't compile:

@@ -1,8 +1,8 @@
+using dotnet_unknown.Model;
+using dotnet_unknown.Service;
 using Microsoft.AspNetCore.Mvc;
-using dotnet_unknown.model;
-using dotnet_unknown.service;
 
-namespace dotnet_unknown.controller;
+namespace dotnet_unknown.Controller;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -26,5 +26,4 @@ public class TodoController(TodoService todoService) : ControllerBase
         var created = await todoService.CreateAsync(item);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
-
 }

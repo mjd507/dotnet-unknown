@@ -1,4 +1,4 @@
-namespace dotnet_unknown.model;
+namespace dotnet_unknown.Model;
 
 public class TodoItem
 {

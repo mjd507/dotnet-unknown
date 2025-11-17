@@ -26,7 +26,6 @@ Console.WriteLine(classPerson1 == classPerson2); // False
 // struct type
 var coords1 = new StructType.Coords(0, 0);
 var coords2 = coords1; // Create new struct object. Note that struct can be initialized without using "new".
-Console.WriteLine(ReferenceEquals(coords1, coords2)); // False
 coords2.X = 1;
 coords2.Y = 1;
 Console.WriteLine($"coords1.X={coords1.X}, coords1.Y={coords1.Y}"); // 0,0

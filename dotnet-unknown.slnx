@@ -4,6 +4,6 @@
         <Platform Name="x64"/>
         <Platform Name="x86"/>
     </Configurations>
-    <Project Path="CSharpBasic/CSharpBasic.csproj"/>
-    <Project Path="dotnet-unknown/dotnet-unknown.csproj"/>
+    <Project Path="src/CSharpBasic/CSharpBasic.csproj"/>
+    <Project Path="src/Todo-Api/Todo-Api.csproj"/>
 </Solution>

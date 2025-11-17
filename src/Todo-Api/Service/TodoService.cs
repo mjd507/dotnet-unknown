@@ -1,6 +1,6 @@
-using dotnet_unknown.model;
+using dotnet_unknown.Model;
 
-namespace dotnet_unknown.service;
+namespace dotnet_unknown.Service;
 
 public class TodoService
 {
