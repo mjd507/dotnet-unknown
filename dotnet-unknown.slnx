@@ -1,10 +1,7 @@
 <Solution>
-    <Configurations>
-        <Platform Name="Any CPU"/>
-        <Platform Name="x64"/>
-        <Platform Name="x86"/>
-    </Configurations>
     <Project Path="src/CSharpBasic/CSharpBasic.csproj"/>
+    <Project Path="src/DotNetUnknown/DotNetUnknown.csproj"/>
     <Project Path="src/Todo-Api/Todo-Api.csproj"/>
     <Project Path="test/CSharpBasic.Tests/CSharpBasic.Tests.csproj"/>
+    <Project Path="test/DotNetUnknown.Tests/DotNetUnknown.Tests.csproj"/>
 </Solution>
