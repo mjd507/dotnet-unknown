@@ -34,7 +34,7 @@ internal sealed class JsonUtilsTests
         // Given
         var weatherForecast = new WeatherForecast
         {
-            Date = new DateTimeOffset(new DateTime(2025, 01, 01)),
+            Date = new DateTimeOffset(new DateTime(2025, 01, 01), TimeSpan.Zero),
             TemperatureCelsius = 123,
             Sky = WeatherForecast.CloudCover.Partial,
             Summary = null
@@ -43,7 +43,7 @@ internal sealed class JsonUtilsTests
         var json = JsonUtils.Serialize(weatherForecast);
         const string expectedJson =
             """
-            {"date":"2025-01-01T00:00:00+08:00","temperatureCelsius":123,"cloudCover":"Partial Cloudy"}
+            {"date":"2025-01-01T00:00:00+00:00","temperatureCelsius":123,"cloudCover":"Partial Cloudy"}
             """;
         // [Serialize] Then
         Assert.That(json, Is.EqualTo(expectedJson));
