@@ -58,9 +58,9 @@ internal sealed class GlobalExceptionHandlerTests
         // Then
         Assert.That(httpResponseMessage.StatusCode, Is.EqualTo(statusCode));
         var problemDetails = await httpResponseMessage.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.That(problemDetails, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problemDetails, Is.Not.Null);
             Assert.That(problemDetails.Instance, Is.EqualTo(url));
             Assert.That(problemDetails.Detail, Is.EqualTo(msg));
         }
