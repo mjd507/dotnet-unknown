@@ -19,14 +19,12 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddTransient<LoggingUtils>();
 
-builder.Services.AddSingleton<GlobalExceptionHandler>();
-
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
-app.MapControllers();
-app.UseRouting();
 app.UseExceptionHandler();
+app.UseRouting();
+app.MapControllers();
 
 app.Run();

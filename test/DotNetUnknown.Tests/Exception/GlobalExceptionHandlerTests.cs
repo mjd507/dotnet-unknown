@@ -1,7 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DotNetUnknown.Tests.Exception;
 
@@ -11,54 +14,55 @@ internal sealed class GlobalExceptionHandlerTests
     [OneTimeSetUp]
     public void Setup()
     {
-        _testWebApplicationFactory = new CustomTestAppFactory();
-        _httpClient = _testWebApplicationFactory.CreateClient();
+        _exceptionTestWebAppFactory = new ExceptionTestWebAppFactory();
+        _httpClient = _exceptionTestWebAppFactory.CreateClient();
     }
 
     [OneTimeTearDown]
     public void Teardown()
     {
-        _testWebApplicationFactory.Dispose();
+        _exceptionTestWebAppFactory.Dispose();
         _httpClient.Dispose();
     }
 
-    private CustomTestAppFactory _testWebApplicationFactory;
-    private HttpClient _httpClient;
-
-    private class CustomTestAppFactory : WebApplicationFactory<Program>
+    private class ExceptionTestWebAppFactory : WebApplicationFactory<Program>
     {
-        // public class TestOnlyController : ControllerBase
-        // {
-        //     [HttpGet("/business_exception")]
-        //     public IActionResult BusinessException()
-        //     {
-        //         throw new BusinessException("this is a business exception");
-        //     }
-        // }
-
-        // protected override void ConfigureWebHost(IWebHostBuilder builder)
-        // {
-        //     builder.ConfigureServices(services =>
-        //     {
-        //         services.AddControllers()
-        //             .AddApplicationPart(Assembly.GetExecutingAssembly());
-        //     });
-        // }
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.ConfigureServices(services =>
+            {
+                services.AddControllers()
+                    .AddApplicationPart(Assembly.GetExecutingAssembly());
+            });
+        }
     }
 
-    [Test]
-    public async Task TestGlobalExceptionHandler()
+    private WebApplicationFactory<Program> _exceptionTestWebAppFactory;
+    private HttpClient _httpClient;
+
+    // Given
+    internal static IEnumerable<object[]> ExceptionSourceProvider
     {
-        var httpResponseMessage = await _httpClient.GetAsync("/business_exception");
+        get
+        {
+            yield return ["/business_exception", HttpStatusCode.Conflict, "this is a business exception"];
+            yield return ["/system_exception", HttpStatusCode.InternalServerError, "this is a system exception"];
+        }
+    }
 
-        Assert.That(httpResponseMessage.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
-
+    [TestCaseSource(nameof(ExceptionSourceProvider))]
+    public async Task TestGlobalExceptionHandler(string url, HttpStatusCode statusCode, string msg)
+    {
+        // When
+        var httpResponseMessage = await _httpClient.GetAsync(url);
+        // Then
+        Assert.That(httpResponseMessage.StatusCode, Is.EqualTo(statusCode));
         var problemDetails = await httpResponseMessage.Content.ReadFromJsonAsync<ProblemDetails>();
-        Assert.That(problemDetails, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problemDetails.Instance, Is.EqualTo("/business_exception"));
-            Assert.That(problemDetails.Detail, Is.EqualTo("this is a business exception"));
+            Assert.That(problemDetails, Is.Not.Null);
+            Assert.That(problemDetails.Instance, Is.EqualTo(url));
+            Assert.That(problemDetails.Detail, Is.EqualTo(msg));
         }
     }
 }
