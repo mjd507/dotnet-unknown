@@ -1,4 +1,5 @@
-﻿using DotNetUnknown.Logging;
+﻿using DotNetUnknown.Exception;
+using DotNetUnknown.Logging;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,12 +13,18 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] [ThreadId {ThreadId}] {Message:lj}{NewLine}{Exception}")
 );
 
-builder.Services.AddTransient<LoggingUtils>();
+builder.Services.AddControllers();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
+builder.Services.AddTransient<LoggingUtils>();
 
 var app = builder.Build();
 
-// Optional: Adds middleware to log HTTP requests automatically via Serilog
 app.UseSerilogRequestLogging();
+
+app.UseExceptionHandler();
+app.UseRouting();
+app.MapControllers();
 
 app.Run();
