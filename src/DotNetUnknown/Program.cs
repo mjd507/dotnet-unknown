@@ -1,4 +1,5 @@
-﻿using DotNetUnknown.Exception;
+﻿using Asp.Versioning;
+using DotNetUnknown.Exception;
 using DotNetUnknown.Logging;
 using Serilog;
 using Serilog.Enrichers.Span;
@@ -18,6 +19,12 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 builder.Services.AddControllers();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = false;
+    options.ApiVersionReader = new HeaderApiVersionReader("X-Api-Version");
+}).AddMvc();
 
 builder.Services.AddTransient<LoggingUtils>();
 
