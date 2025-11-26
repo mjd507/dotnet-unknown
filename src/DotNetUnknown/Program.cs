@@ -1,6 +1,7 @@
 ﻿using DotNetUnknown.Exception;
 using DotNetUnknown.Logging;
 using Serilog;
+using Serilog.Enrichers.Span;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +10,9 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
     .ReadFrom.Services(services)
     .Enrich.FromLogContext()
     .Enrich.WithThreadId()
+    .Enrich.WithSpan()
     .WriteTo.Console(outputTemplate:
-        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] [ThreadId {ThreadId}] {Message:lj}{NewLine}{Exception}")
+        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] [{ThreadId}] [{TraceId} - {SpanId}] {Message:lj}{NewLine}{Exception}")
 );
 
 builder.Services.AddControllers();
