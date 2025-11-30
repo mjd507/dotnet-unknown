@@ -1,22 +1,27 @@
 using System.Net.Http.Headers;
 using System.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotNetUnknown.Tests.Support;
 
-public class MvcTestSupport
+public class MvcTestSupport : BaseTestSupport
 {
-    private WebAppFactory _webAppFactory;
     protected HttpClient HttpClient;
 
-    [OneTimeSetUp]
-    public void SetUp()
+    protected override Action<IServiceCollection> ConfigureServicesAction()
     {
-        _webAppFactory = new WebAppFactory();
-        HttpClient = _webAppFactory.CreateClient();
+        return services =>
+        {
+            services.AddSingleton<JwtTokenTestSupport>()
+                .AddControllers().AddApplicationPart(Assembly.GetExecutingAssembly());
+        };
+    }
+
+    [OneTimeSetUp]
+    public void MvcSetup()
+    {
+        HttpClient = WebAppFactory.CreateClient();
         // add a api version before each request
         HttpClient.DefaultRequestHeaders.Add("X-Api-Version", "1.0");
         // add a jwt token before each request
@@ -26,27 +31,8 @@ public class MvcTestSupport
     }
 
     [OneTimeTearDown]
-    public void TearDown()
+    public void MvcTearDown()
     {
-        _webAppFactory.Dispose();
         HttpClient.Dispose();
-    }
-
-    protected T GetRequiredService<T>() where T : notnull
-    {
-        return _webAppFactory.Services.GetRequiredService<T>();
-    }
-}
-
-internal sealed class WebAppFactory : WebApplicationFactory<Program>
-{
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.ConfigureServices(services =>
-        {
-            services.AddControllers()
-                .AddApplicationPart(Assembly.GetExecutingAssembly());
-            services.AddSingleton<JwtTokenTestSupport>();
-        });
     }
 }

@@ -3,7 +3,7 @@ using DotNetUnknown.Tests.Support;
 
 namespace DotNetUnknown.Tests.Logging;
 
-internal sealed class LoggingUtilsTest : MvcTestSupport
+internal sealed class LoggingUtilsTest : BaseTestSupport
 {
     [Test]
     public void TestLogInfo()
