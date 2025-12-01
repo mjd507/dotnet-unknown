@@ -32,15 +32,15 @@ public class MyTransactionalInterceptor(MyTransactionSupport myTransactionSuppor
 
 public class MyTransactionSupport
 {
-    public void BeginTransaction(MethodInfo method)
+    public virtual void BeginTransaction(MethodInfo method)
     {
     }
 
-    public void CommitTransaction(MethodInfo method)
+    public virtual void CommitTransaction(MethodInfo method)
     {
     }
 
-    public void RollbackTransaction(MethodInfo method)
+    public virtual void RollbackTransaction(MethodInfo method)
     {
     }
 }

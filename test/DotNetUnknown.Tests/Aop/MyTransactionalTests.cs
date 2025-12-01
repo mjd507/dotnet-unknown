@@ -2,7 +2,6 @@ using System.Reflection;
 using DotNetUnknown.Aop;
 using DotNetUnknown.Tests.Support;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace DotNetUnknown.Tests.Aop;
@@ -10,19 +9,14 @@ namespace DotNetUnknown.Tests.Aop;
 [TestFixture]
 internal sealed class MyTransactionalTests : BaseTestSupport
 {
-    // Mock<ILogger> mockLogger = new() { CallBase = true };
-    //
-    private Mock<MyTransactionSupport> myTransactionSupportSpy = new() { CallBase = true };
-    // {
-    //     CallBase = true,
-    // };
+    private readonly Mock<MyTransactionSupport> _myTransactionSupportMock = new();
 
     protected override Action<IServiceCollection> ConfigureServicesAction()
     {
         return base.ConfigureServicesAction() + (services =>
         {
             services
-                .AddScoped<MyTransactionSupport>()
+                .AddScoped<MyTransactionSupport>(_ => _myTransactionSupportMock.Object)
                 .AddProxiedScoped<IMyService, MyService, MyTransactionalInterceptor>();
         });
     }
@@ -40,8 +34,8 @@ internal sealed class MyTransactionalTests : BaseTestSupport
         myService.MoneyMovement();
 
         // Then
-        myTransactionSupportSpy.Verify(spy => spy.BeginTransaction(It.IsNotNull<MethodInfo>()), Times.Once());
-        myTransactionSupportSpy.Verify(spy => spy.CommitTransaction(It.IsNotNull<MethodInfo>()), Times.Once());
+        _myTransactionSupportMock.Verify(spy => spy.BeginTransaction(It.IsAny<MethodInfo>()), Times.Once());
+        _myTransactionSupportMock.Verify(spy => spy.CommitTransaction(It.IsAny<MethodInfo>()), Times.Once());
     }
 }
 
@@ -51,10 +45,9 @@ public interface IMyService
     public void MoneyMovement();
 }
 
-public class MyService(ILogger<MyService> logger) : IMyService
+public class MyService : IMyService
 {
     public void MoneyMovement()
     {
-        logger.LogInformation("processing money movement");
     }
 }
