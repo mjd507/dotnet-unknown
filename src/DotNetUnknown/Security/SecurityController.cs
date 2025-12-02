@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DotNetUnknown.Tests.Security;
+namespace DotNetUnknown.Security;
 
 [ApiController]
 [Route("security")]
-public sealed class SecurityTestController : ControllerBase
+public sealed class SecurityController : ControllerBase
 {
     [HttpGet]
     [Route("admin")]

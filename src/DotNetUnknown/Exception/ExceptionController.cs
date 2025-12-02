@@ -1,9 +1,8 @@
-using DotNetUnknown.Exception;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DotNetUnknown.Tests.Exception;
+namespace DotNetUnknown.Exception;
 
-public sealed class ExceptionTestController : ControllerBase
+public sealed class ExceptionController : ControllerBase
 {
     [HttpGet("/business_exception")]
     public IActionResult BusinessException()

@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Reflection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,11 +10,7 @@ public class MvcTestSupport : BaseTestSupport
 
     protected override Action<IServiceCollection> ConfigureServicesAction()
     {
-        return services =>
-        {
-            services.AddSingleton<JwtTokenTestSupport>()
-                .AddControllers().AddApplicationPart(Assembly.GetExecutingAssembly());
-        };
+        return services => { services.AddSingleton<JwtTokenTestSupport>(); };
     }
 
     [OneTimeSetUp]

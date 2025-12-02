@@ -1,11 +1,11 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DotNetUnknown.Tests.ApiVersioning;
+namespace DotNetUnknown.ApiVersioning;
 
 [ApiController]
 [Route("ApiVersioning")]
-public sealed class ApiVersioningTestController : ControllerBase
+public sealed class ApiVersioningController : ControllerBase
 {
     [HttpGet]
     [Route("v-1-0")]
