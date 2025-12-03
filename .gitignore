@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # ignore test db files
 *.db
+
+# ignore http files
+*.http

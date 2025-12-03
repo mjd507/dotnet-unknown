@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Asp.Versioning;
+using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Security;
@@ -21,11 +22,12 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
         "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] [{ThreadId}] [{TraceId} - {SpanId}] {Message:lj}{NewLine}{Exception}")
 );
 
-builder.Services.AddControllers(options => { options.Filters.Add(new AuthorizeFilter()); });
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
+var services = builder.Services;
+services.AddControllers(options => { options.Filters.Add(new AuthorizeFilter()); });
+services.AddExceptionHandler<GlobalExceptionHandler>();
+services.AddProblemDetails();
 
-builder.Services.AddApiVersioning(options =>
+services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = false;
     options.ApiVersionReader = new HeaderApiVersionReader("X-Api-Version");
@@ -35,7 +37,7 @@ builder.Services.AddApiVersioning(options =>
 
 var jwtSettings = builder.Configuration.GetRequiredSection("JwtSettings");
 var jwtKey = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException());
-builder.Services.AddAuthentication(options =>
+services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -54,12 +56,14 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(jwtKey)
     };
 });
-builder.Services.AddAuthorization();
-builder.Services.AddSingleton<JwtTokenUtils>();
+services.AddAuthorization();
+services.AddSingleton<JwtTokenUtils>();
 
 #endregion
 
-builder.Services.AddTransient<LoggingUtils>();
+services.AddTransient<LoggingUtils>();
+
+services.RegisterMyDbContext();
 
 var app = builder.Build();
 
@@ -73,5 +77,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.EnsureDatabaseCreated();
 
 app.Run();

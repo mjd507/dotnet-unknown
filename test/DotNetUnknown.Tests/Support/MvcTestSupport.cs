@@ -21,8 +21,10 @@ public class MvcTestSupport : BaseTestSupport
         HttpClient.DefaultRequestHeaders.Add("X-Api-Version", "1.0");
         // add a jwt token before each request
         var jwtTokenUtils = GetRequiredService<JwtTokenTestSupport>();
+        var normalUserToken = jwtTokenUtils.NormalUserToken;
+        TestContext.Out.WriteLine($"{normalUserToken}");
         HttpClient.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, jwtTokenUtils.NormalUserToken);
+            new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, normalUserToken);
     }
 
     [OneTimeTearDown]
