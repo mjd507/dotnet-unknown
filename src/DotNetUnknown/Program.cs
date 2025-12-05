@@ -4,6 +4,7 @@ using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Security;
+using DotNetUnknown.Transaction;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -63,7 +64,9 @@ services.AddSingleton<JwtTokenUtils>();
 
 services.AddTransient<LoggingUtils>();
 
-services.RegisterMyDbContext();
+services.RegisterAppDbContext();
+
+services.RegisterTransactionServices();
 
 var app = builder.Build();
 

@@ -2,13 +2,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DotNetUnknown.DbConfig;
 
-public static class MyDbContextExtension
+public static class AppDbContextExtension
 {
     extension(IServiceCollection serviceCollection)
     {
-        public void RegisterMyDbContext()
+        public void RegisterAppDbContext()
         {
-            serviceCollection.AddDbContext<MyDbContext>(options => options.UseSqlite("Data Source=MyDb.db"));
+            serviceCollection.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=MyDb.db"));
         }
     }
 
@@ -18,7 +18,7 @@ public static class MyDbContextExtension
         {
             using var scope = webApplication.Services.CreateScope();
             var services = scope.ServiceProvider;
-            var context = services.GetRequiredService<MyDbContext>();
+            var context = services.GetRequiredService<AppDbContext>();
             context.Database.EnsureCreated();
         }
     }
