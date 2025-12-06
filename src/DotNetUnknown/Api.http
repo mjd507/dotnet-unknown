@@ -23,7 +23,8 @@ X-Api-Version: 1.0
 {
   "MasterAccNum": 10000,
   "SubAccNum": 10001,
-  "Amount": 60
+  "Amount": 60,
+  "FlagException": true
 }
 
 ### accountBalance

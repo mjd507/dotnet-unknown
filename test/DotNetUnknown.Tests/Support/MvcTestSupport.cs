@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace DotNetUnknown.Tests.Support;
 
-public class MvcTestSupport : BaseTestSupport
+public abstract class MvcTestSupport : BaseTestSupport
 {
     protected HttpClient HttpClient;
 

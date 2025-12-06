@@ -5,13 +5,14 @@ namespace DotNetUnknown.Transaction;
 
 [Route("transaction")]
 [ApiController]
-public class TransactionController(TransactionService transactionService) : ControllerBase
+public class TransactionController(TransactionService transactionService, AuditService auditService) : ControllerBase
 {
     [HttpPost]
     [Route("resetAccount")]
     public ActionResult<string> ResetAccount(ResetAccountReq resetAccountReq)
     {
         transactionService.ResetAccount(resetAccountReq.MasterAccNum, resetAccountReq.SubAccNum);
+        auditService.ClearAll();
         return Ok();
     }
 
@@ -25,10 +26,15 @@ public class TransactionController(TransactionService transactionService) : Cont
 
     [HttpPost]
     [Route("accountBalance")]
-    public ActionResult<string> AccountBalance(AccountBalanceReq accountBalanceReq)
+    public ActionResult<AccountBalanceResp> AccountBalance(AccountBalanceReq accountBalanceReq)
     {
         var (masterAccBalance, subAccBalance) =
             transactionService.FindBalance(accountBalanceReq.MasterAccNum, accountBalanceReq.SubAccNum);
-        return Ok("masterAccBalance:" + masterAccBalance + ", subAccBalance:" + subAccBalance);
+        var accountBalanceResp = new AccountBalanceResp
+        {
+            MasterAccBalance = masterAccBalance, SubAccBalance = subAccBalance,
+            AuditTrail = auditService.GetAuditTrail()
+        };
+        return Ok(accountBalanceResp);
     }
 }
