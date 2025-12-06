@@ -1,18 +1,40 @@
 using DotNetUnknown.DbConfig;
+using DotNetUnknown.Exception;
 using DotNetUnknown.Transaction.Entity;
 using DotNetUnknown.Transaction.Model;
 
 namespace DotNetUnknown.Transaction;
 
-public class TransactionService(AppDbContext dbCtx)
+public class TransactionService(AppDbContext dbCtx, AuditService auditService)
 {
     public void MoneyTransfer(MoneyTransferReq transferReq)
     {
-        var masterAccount = dbCtx.MasterAccount.Single(acc => acc.AccountNumber.Equals(transferReq.MasterAccNum));
-        masterAccount.Balance -= transferReq.Amount;
-        var subAccount = dbCtx.SubAccount.Single(acc => acc.AccountNumber.Equals(transferReq.SubAccNum));
-        subAccount.Balance += transferReq.Amount;
-        dbCtx.SaveChanges();
+        // Sqlite provider does not support ambient transactions. 
+        // var scope = new TransactionScope(TransactionScopeOption.Required);
+        using var dbTransaction = dbCtx.Database.BeginTransaction();
+        try
+        {
+            var masterAccount = dbCtx.MasterAccount.Single(acc => acc.AccountNumber.Equals(transferReq.MasterAccNum));
+            masterAccount.Balance -= transferReq.Amount;
+            auditService.InsertAudit("SYS", "SYS", "master account money sent");
+
+            var subAccount = dbCtx.SubAccount.Single(acc => acc.AccountNumber.Equals(transferReq.SubAccNum));
+            subAccount.Balance += transferReq.Amount;
+            auditService.InsertAudit("SYS", "SYS", "sub account money received");
+
+            dbCtx.SaveChanges();
+            if (transferReq.FlagException)
+            {
+                throw new BusinessException();
+            }
+
+            dbTransaction.Commit();
+        }
+        catch (System.Exception)
+        {
+            dbTransaction.Rollback();
+            throw;
+        }
     }
 
     /**

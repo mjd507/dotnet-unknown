@@ -7,6 +7,7 @@ public static class TransactionExtension
         public void RegisterTransactionServices()
         {
             serviceCollection.AddScoped<TransactionService>();
+            serviceCollection.AddScoped<AuditService>();
         }
     }
 }
