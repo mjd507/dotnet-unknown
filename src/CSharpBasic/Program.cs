@@ -1,1 +1,0 @@
-﻿Console.WriteLine("Tests are in a separate project!");
