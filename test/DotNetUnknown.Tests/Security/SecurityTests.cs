@@ -5,16 +5,21 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace DotNetUnknown.Tests.Security;
 
-[TestFixture]
-internal sealed class SecurityTests : MvcTestSupport
+internal sealed class SecurityTests
 {
+    [OneTimeTearDown]
+    public void ResetJwtToken()
+    {
+        TestProgram.SetDefaultJwtToken();
+    }
+
     [Test]
     public async Task TestWithoutJwtToken()
     {
         // Given
-        HttpClient.DefaultRequestHeaders.Authorization = null;
+        TestProgram.HttpClient.DefaultRequestHeaders.Authorization = null;
         // When
-        var response = await HttpClient.GetAsync("security/admin");
+        var response = await TestProgram.HttpClient.GetAsync("security/admin");
         // Then
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
@@ -23,12 +28,12 @@ internal sealed class SecurityTests : MvcTestSupport
     public async Task TestWithNormalJwtToken_Forbidden()
     {
         // Given
-        var jwtTokenTestSupport = GetRequiredService<JwtTokenTestSupport>();
+        var jwtTokenTestSupport = TestProgram.GetRequiredService<JwtTokenTestSupport>();
         var normalUserToken = jwtTokenTestSupport.NormalUserToken;
-        HttpClient.DefaultRequestHeaders.Authorization =
+        TestProgram.HttpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, normalUserToken);
         // When
-        var response = await HttpClient.GetAsync("security/admin");
+        var response = await TestProgram.HttpClient.GetAsync("security/admin");
         // Then
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Forbidden));
     }
@@ -38,12 +43,12 @@ internal sealed class SecurityTests : MvcTestSupport
     public async Task TestWithAdminJwtToken_Ok()
     {
         // Given
-        var jwtTokenTestSupport = GetRequiredService<JwtTokenTestSupport>();
+        var jwtTokenTestSupport = TestProgram.GetRequiredService<JwtTokenTestSupport>();
         var adminUserToken = jwtTokenTestSupport.AdminUserToken;
-        HttpClient.DefaultRequestHeaders.Authorization =
+        TestProgram.HttpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, adminUserToken);
         // When
-        var response = await HttpClient.GetAsync("security/admin");
+        var response = await TestProgram.HttpClient.GetAsync("security/admin");
         // Then
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var content = await response.Content.ReadAsStringAsync();

@@ -1,12 +1,10 @@
-using DotNetUnknown.Tests.Support;
 using DotNetUnknown.Transaction;
 using DotNetUnknown.Transaction.Model;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DotNetUnknown.Tests.Transaction;
 
-[TestFixture]
-public class TransactionServiceTests : DbTestSupport
+internal sealed class TransactionServiceTests
 {
     private const int MasterAccNum = 10000;
     private const int SubAccNum = 10001;
@@ -16,7 +14,7 @@ public class TransactionServiceTests : DbTestSupport
     public void TestMoneyTransfer(bool hasException)
     {
         // Data Reset
-        using var scope = WebAppFactory.Services.CreateScope();
+        using var scope = TestProgram.WebAppFactory.Services.CreateScope();
         var transactionService = scope.ServiceProvider.GetRequiredService<TransactionService>();
         var auditService = scope.ServiceProvider.GetRequiredService<AuditService>();
         transactionService.ResetAccount(MasterAccNum, SubAccNum);
@@ -35,7 +33,7 @@ public class TransactionServiceTests : DbTestSupport
         }
 
         // Then (use a new scope)
-        using var scope2 = WebAppFactory.Services.CreateScope();
+        using var scope2 = TestProgram.WebAppFactory.Services.CreateScope();
         var transactionService2 = scope2.ServiceProvider.GetRequiredService<TransactionService>();
         var auditService2 = scope2.ServiceProvider.GetRequiredService<AuditService>();
         var (masterAccBalance, subAccBalance) =

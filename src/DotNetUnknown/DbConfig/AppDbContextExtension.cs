@@ -8,7 +8,9 @@ public static class AppDbContextExtension
     {
         public void RegisterAppDbContext()
         {
-            serviceCollection.AddDbContext<AppDbContext>(options => options.UseSqlite("Data Source=MyDb.db"));
+            serviceCollection.AddDbContext<AppDbContext>(options => options
+                .UseNpgsql("Host=localhost;Port=5432;Database=mydatabase;Username=myuser;Password=secret;")
+            );
         }
     }
 
@@ -16,10 +18,12 @@ public static class AppDbContextExtension
     {
         public void EnsureDatabaseCreated()
         {
-            using var scope = webApplication.Services.CreateScope();
-            var services = scope.ServiceProvider;
-            var context = services.GetRequiredService<AppDbContext>();
-            context.Database.EnsureCreated();
+            // Since now uses Docker Compose with Postgres, tables are created before app runs.
+            // below for SqlLite are not required.
+            // using var scope = webApplication.Services.CreateScope();
+            // var services = scope.ServiceProvider;
+            // var context = services.GetRequiredService<AppDbContext>();
+            // context.Database.EnsureCreated();
         }
     }
 }
