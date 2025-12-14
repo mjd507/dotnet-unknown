@@ -1,12 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using DotNetUnknown.Tests.Support;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotNetUnknown.Tests.Exception;
 
-[TestFixture]
-internal sealed class GlobalExceptionHandlerTests : MvcTestSupport
+internal sealed class GlobalExceptionHandlerTests
 {
     // Given
     internal static IEnumerable<object[]> ExceptionSourceProvider
@@ -22,7 +20,7 @@ internal sealed class GlobalExceptionHandlerTests : MvcTestSupport
     public async Task TestGlobalExceptionHandler(string url, HttpStatusCode statusCode, string msg)
     {
         // When
-        var httpResponseMessage = await HttpClient.GetAsync(url);
+        var httpResponseMessage = await TestProgram.HttpClient.GetAsync(url);
         // Then
         Assert.That(httpResponseMessage.StatusCode, Is.EqualTo(statusCode));
         var problemDetails = await httpResponseMessage.Content.ReadFromJsonAsync<ProblemDetails>();

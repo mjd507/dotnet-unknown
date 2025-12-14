@@ -1,18 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
-using DotNetUnknown.Tests.Support;
 
 namespace DotNetUnknown.Tests.ApiVersioning;
 
-[TestFixture]
-public class ApiVersioningTests : MvcTestSupport
+internal sealed class ApiVersioningTests
 {
-    [SetUp]
-    public void OneTimeSetUp()
-    {
-        HttpClient.DefaultRequestHeaders.Remove("X-Api-Version");
-    }
-
     internal static IEnumerable<TestInfoRecord> RequestProvider
     {
         get
@@ -23,12 +15,24 @@ public class ApiVersioningTests : MvcTestSupport
         }
     }
 
+    [SetUp]
+    public void Setup()
+    {
+        TestProgram.HttpClient.DefaultRequestHeaders.Remove("X-Api-Version");
+    }
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        TestProgram.SetDefaultApiVersion();
+    }
+
     [TestCaseSource(nameof(RequestProvider))]
     public async Task TestApiVersioning(TestInfoRecord testInfoRecord)
     {
         // When
-        HttpClient.DefaultRequestHeaders.Add("X-Api-Version", testInfoRecord.Version);
-        var responseMessage = await HttpClient.GetAsync("/ApiVersioning/v-1-0");
+        TestProgram.HttpClient.DefaultRequestHeaders.Add("X-Api-Version", testInfoRecord.Version);
+        var responseMessage = await TestProgram.HttpClient.GetAsync("/ApiVersioning/v-1-0");
         // Then
         var statusCode = responseMessage.StatusCode;
         var responseJson = await responseMessage.Content.ReadFromJsonAsync<ResponseRecord>();

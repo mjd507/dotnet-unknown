@@ -1,3 +1,4 @@
+using System.Transactions;
 using DotNetUnknown.DbConfig;
 using DotNetUnknown.Transaction.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -21,21 +22,9 @@ public class AuditService(AppDbContext dbCtx)
 
     public void InsertAuditInTx(string maker, string checker, string comment)
     {
-        // if this inner transaction be called inside an outer transaction, will throw below exception:
-        // The connection is already in a transaction and cannot participate in another transaction.
-        using var transaction = dbCtx.Database.BeginTransaction();
-        try
-        {
-            var auditTrail = new AuditTrail() { Maker = maker, Comment = comment, Checker = checker };
-            dbCtx.AuditTrail.Add(auditTrail);
-            dbCtx.SaveChanges();
-            transaction.Commit();
-        }
-        catch (System.Exception)
-        {
-            transaction.Rollback();
-            throw;
-        }
+        using var scope = new TransactionScope(TransactionScopeOption.RequiresNew);
+        InsertAudit(maker, checker, comment);
+        scope.Complete();
     }
 
     public List<AuditTrail> GetAuditTrail()
