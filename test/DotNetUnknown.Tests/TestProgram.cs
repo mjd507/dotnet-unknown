@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using DotNet.Testcontainers.Builders;
 using DotNetUnknown.Aop;
 using DotNetUnknown.DbConfig;
 using DotNetUnknown.Tests.Aop;
@@ -21,23 +22,54 @@ internal sealed class TestProgram
     public static WebAppFactory WebAppFactory;
     public static HttpClient HttpClient;
 
-    private readonly PostgreSqlContainer _pgContainer = new PostgreSqlBuilder()
-        .WithImage("postgres:11")
-        .WithDatabase("mydatabase")
-        .WithUsername("myuser")
-        .WithPassword("secret")
-        .WithBindMount(Path.Combine(Directory.GetCurrentDirectory(), "../../../../../docker/db/init"),
-            "/docker-entrypoint-initdb.d/")
-        .Build();
+    private static bool _isDockerAvailable;
+    private PostgreSqlContainer? _pgContainer;
+
+    private static async Task<bool> CheckDockerAvailability()
+    {
+        try
+        {
+            await new ContainerBuilder().WithImage("postgres:11").Build().StartAsync();
+            await new ContainerBuilder().WithImage("postgres:11").Build().DisposeAsync().ConfigureAwait(false);
+            return true;
+        }
+        catch (System.Exception ex)
+        {
+            await TestContext.Progress.WriteLineAsync($"Docker unavailable: {ex.Message}");
+            return false;
+        }
+    }
+
+    public static void SkipIfNoDockerAvailable()
+    {
+        if (!_isDockerAvailable)
+        {
+            Assert.Inconclusive("Docker unavailable. Skipping tests.");
+        }
+    }
 
     [OneTimeSetUp]
     public async Task GlobalSetup()
     {
         await TestContext.Out.WriteLineAsync("TestProgram Setup...");
-        // postgres container
-        await _pgContainer.StartAsync();
+        _isDockerAvailable = await CheckDockerAvailability();
+        if (_isDockerAvailable)
+        {
+            _pgContainer = new PostgreSqlBuilder()
+                .WithImage("postgres:11")
+                .WithDatabase("mydatabase")
+                .WithUsername("myuser")
+                .WithPassword("secret")
+                .WithBindMount(Path.Combine(Directory.GetCurrentDirectory(), "../../../../../docker/db/init"),
+                    "/docker-entrypoint-initdb.d/")
+                .Build();
+
+            // start postgres 
+            await _pgContainer.StartAsync();
+        }
+
         // web application factory
-        WebAppFactory = new WebAppFactory(_pgContainer.GetConnectionString());
+        WebAppFactory = new WebAppFactory(_pgContainer?.GetConnectionString() ?? string.Empty);
         // http client for mvc test use
         HttpClient = WebAppFactory.CreateClient();
         ConfigureDefaultHttpClient();
@@ -48,7 +80,10 @@ internal sealed class TestProgram
     {
         HttpClient.Dispose();
         await WebAppFactory.DisposeAsync();
-        await _pgContainer.DisposeAsync();
+        if (_pgContainer != null)
+        {
+            await _pgContainer.DisposeAsync();
+        }
 
         await TestContext.Out.WriteLineAsync("TestProgram Teared Down...");
     }

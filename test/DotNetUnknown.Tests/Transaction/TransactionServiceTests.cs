@@ -9,6 +9,12 @@ internal sealed class TransactionServiceTests
     private const int MasterAccNum = 10000;
     private const int SubAccNum = 10001;
 
+    [OneTimeSetUp]
+    public void OneTimeSetup()
+    {
+        TestProgram.SkipIfNoDockerAvailable();
+    }
+
     [TestCase(true)]
     [TestCase(false)]
     public void TestMoneyTransfer(bool hasException)
