@@ -5,6 +5,7 @@ using DotNetUnknown.Exception;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Security;
 using DotNetUnknown.Transaction;
+using DotNetUnknown.Validation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
@@ -67,6 +68,8 @@ services.AddTransient<LoggingUtils>();
 services.RegisterAppDbContext();
 
 services.RegisterTransactionServices();
+
+services.AddScoped<MxService>();
 
 var app = builder.Build();
 

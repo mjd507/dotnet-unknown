@@ -114,6 +114,12 @@ internal sealed class TestProgram
     {
         return WebAppFactory.Services.GetRequiredService<T>();
     }
+
+    public static T? GetScopedService<T>() where T : notnull
+    {
+        var serviceScope = WebAppFactory.Services.CreateScope();
+        return serviceScope.ServiceProvider.GetService<T>();
+    }
 }
 
 public class WebAppFactory(string postgresConnectionString) : WebApplicationFactory<Program>
