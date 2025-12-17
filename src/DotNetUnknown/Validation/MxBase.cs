@@ -4,7 +4,7 @@ namespace DotNetUnknown.Validation;
 
 public abstract class MxBase
 {
-    [Required] public Guid UETR { get; set; }
+    [Required] public string UETR { get; set; }
 
     [Required] [MaxLength(35)] public string MessageId { get; set; }
 
