@@ -44,7 +44,7 @@ internal sealed class MxServiceTest
             yield return new BadMx009Request(req1, "The MessageId field is required.");
 
             var req2 = DeepClone(Mx009);
-            req2.DebtorAgent = null;
+            req2.DebtorAgent = null!;
             yield return new BadMx009Request(req2, "The DebtorAgent field is required.");
 
             // Validator seems can not validate inner (nested) objects...?
