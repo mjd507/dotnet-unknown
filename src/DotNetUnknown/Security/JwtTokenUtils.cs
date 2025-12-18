@@ -1,22 +1,24 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DotNetUnknown.Security;
 
-public sealed class JwtTokenUtils(IConfiguration configuration)
+public sealed class JwtTokenUtils(IOptions<JwtSettings> jwtSettingsOption)
 {
+    private readonly JwtSettings _jwtSettings = jwtSettingsOption.Value;
+
+    // Value is set once and stays the same for the app's lifetime
+
     /**
      * generate JWT token for client use.
      * usually called after a successful login. (in an authorization server)
      */
     public string GenerateToken(UserInfo userInfo)
     {
-        var jwtSettings = configuration.GetRequiredSection("JwtSettings");
-#nullable disable
-        var jwtKey = Encoding.ASCII.GetBytes(jwtSettings["Key"]);
-#nullable enable
+        var jwtKey = Encoding.ASCII.GetBytes(_jwtSettings.Key);
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, userInfo.UserId),
@@ -30,8 +32,8 @@ public sealed class JwtTokenUtils(IConfiguration configuration)
         {
             Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddHours(1),
-            Issuer = jwtSettings["Issuer"],
-            Audience = jwtSettings["Audience"],
+            Issuer = _jwtSettings.Issuer,
+            Audience = _jwtSettings.Audience,
             SigningCredentials =
                 new SigningCredentials(new SymmetricSecurityKey(jwtKey), SecurityAlgorithms.HmacSha256Signature)
         };
