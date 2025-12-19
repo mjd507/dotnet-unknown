@@ -10,18 +10,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
-using Serilog.Enrichers.Span;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, configuration) => configuration
-    .ReadFrom.Configuration(context.Configuration) // appsettings.json
+    .ReadFrom.Configuration(context.Configuration)
     .ReadFrom.Services(services)
-    .Enrich.FromLogContext()
-    .Enrich.WithThreadId()
-    .Enrich.WithSpan()
-    .WriteTo.Console(outputTemplate:
-        "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] [{ThreadId}] [{TraceId} - {SpanId}] {Message:lj}{NewLine}{Exception}")
 );
 
 var services = builder.Services;
@@ -37,8 +31,10 @@ services.AddApiVersioning(options =>
 
 #region JWT Authentication & Authorization
 
-var jwtSettings = builder.Configuration.GetRequiredSection("JwtSettings");
-var jwtKey = Encoding.ASCII.GetBytes(jwtSettings["Key"] ?? throw new InvalidOperationException());
+// for later DI
+services.AddOptions<JwtSettings>().BindConfiguration("JwtSettings");
+// for use now
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>()!;
 services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -53,9 +49,9 @@ services.AddAuthentication(options =>
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtSettings["Issuer"],
-        ValidAudience = jwtSettings["Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(jwtKey)
+        ValidIssuer = jwtSettings.Issuer,
+        ValidAudience = jwtSettings.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtSettings.Key))
     };
 });
 services.AddAuthorization();
@@ -65,7 +61,7 @@ services.AddSingleton<JwtTokenUtils>();
 
 services.AddTransient<LoggingUtils>();
 
-services.RegisterAppDbContext();
+services.RegisterAppDbContext(builder.Configuration);
 
 services.RegisterTransactionServices();
 

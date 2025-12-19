@@ -6,10 +6,10 @@ public static class AppDbContextExtension
 {
     extension(IServiceCollection serviceCollection)
     {
-        public void RegisterAppDbContext()
+        public void RegisterAppDbContext(IConfiguration configuration)
         {
             serviceCollection.AddDbContext<AppDbContext>(options => options
-                .UseNpgsql("Host=localhost;Port=5432;Database=mydatabase;Username=myuser;Password=secret;")
+                .UseNpgsql(configuration.GetConnectionString("PostgresConnection"))
             );
         }
     }
