@@ -2,6 +2,7 @@
 using Asp.Versioning;
 using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
+using DotNetUnknown.Http;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Security;
 using DotNetUnknown.Transaction;
@@ -66,6 +67,8 @@ services.RegisterAppDbContext(builder.Configuration);
 services.RegisterTransactionServices();
 
 services.AddScoped<MxService>();
+
+services.RegisterHttpClients();
 
 var app = builder.Build();
 
