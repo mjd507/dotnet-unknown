@@ -2,6 +2,7 @@
 using Asp.Versioning;
 using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
+using DotNetUnknown.HealthCheck;
 using DotNetUnknown.Http;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Security;
@@ -24,6 +25,7 @@ services.AddControllers(options => { options.Filters.Add(new AuthorizeFilter());
 services.AddExceptionHandler<GlobalExceptionHandler>();
 services.AddProblemDetails();
 
+services.AddHealthCheck(builder.Configuration);
 services.AddApiVersioning(options =>
 {
     options.AssumeDefaultVersionWhenUnspecified = false;
@@ -75,6 +77,8 @@ var app = builder.Build();
 app.UseSerilogRequestLogging();
 
 app.UseExceptionHandler();
+
+app.UseHealthCheck();
 
 app.UseRouting();
 
