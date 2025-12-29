@@ -5,6 +5,7 @@ using DotNetUnknown.Exception;
 using DotNetUnknown.HealthCheck;
 using DotNetUnknown.Http;
 using DotNetUnknown.Logging;
+using DotNetUnknown.Resilience;
 using DotNetUnknown.Security;
 using DotNetUnknown.Transaction;
 using DotNetUnknown.Validation;
@@ -71,6 +72,8 @@ services.RegisterTransactionServices();
 services.AddScoped<MxService>();
 
 services.RegisterHttpClients();
+
+services.RegisterResilience();
 
 var app = builder.Build();
 
