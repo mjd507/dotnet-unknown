@@ -115,10 +115,10 @@ internal sealed class TestProgram
         return WebAppFactory.Services.GetRequiredService<T>();
     }
 
-    public static T? GetScopedService<T>() where T : notnull
+    public static T GetScopedService<T>() where T : notnull
     {
         var serviceScope = WebAppFactory.Services.CreateScope();
-        return serviceScope.ServiceProvider.GetService<T>();
+        return serviceScope.ServiceProvider.GetService<T>()!;
     }
 }
 
