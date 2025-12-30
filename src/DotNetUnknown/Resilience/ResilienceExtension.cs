@@ -21,5 +21,10 @@ public static class ResilienceExtension
         });
 
         services.AddScoped<RetryService>();
+
+        services.AddResiliencePipeline(key: "my-rate-limit-pipeline",
+            configure: pipeline => pipeline.AddConcurrencyLimiter(permitLimit: 5, queueLimit: 1000));
+
+        services.AddScoped<RateLimitService>();
     }
 }
