@@ -3,6 +3,7 @@ using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
 using DotNetUnknown.HealthCheck;
 using DotNetUnknown.Http;
+using DotNetUnknown.Lock;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Resilience;
 using DotNetUnknown.Security;
@@ -41,6 +42,8 @@ services.RegisterTransactionServices();
 services.RegisterHttpClients();
 
 services.RegisterResilience();
+
+services.RegisterLock();
 
 services.AddTransient<LoggingUtils>();
 
