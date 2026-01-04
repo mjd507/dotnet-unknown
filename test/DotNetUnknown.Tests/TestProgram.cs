@@ -4,6 +4,8 @@ using DotNetUnknown.Aop;
 using DotNetUnknown.DbConfig;
 using DotNetUnknown.Tests.Aop;
 using DotNetUnknown.Tests.Support;
+using Medallion.Threading;
+using Medallion.Threading.Postgres;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -29,8 +31,8 @@ internal sealed class TestProgram
     {
         try
         {
-            await new ContainerBuilder().WithImage("postgres:11").Build().StartAsync();
-            await new ContainerBuilder().WithImage("postgres:11").Build().DisposeAsync().ConfigureAwait(false);
+            await new ContainerBuilder("postgres:11").Build().StartAsync();
+            await new ContainerBuilder("postgres:11").Build().DisposeAsync().ConfigureAwait(false);
             return true;
         }
         catch (System.Exception ex)
@@ -55,8 +57,7 @@ internal sealed class TestProgram
         _isDockerAvailable = await CheckDockerAvailability();
         if (_isDockerAvailable)
         {
-            _pgContainer = new PostgreSqlBuilder()
-                .WithImage("postgres:11")
+            _pgContainer = new PostgreSqlBuilder("postgres:11")
                 .WithDatabase("mydatabase")
                 .WithUsername("myuser")
                 .WithPassword("secret")
@@ -144,6 +145,11 @@ public class WebAppFactory(string postgresConnectionString) : WebApplicationFact
             services.RemoveAll<AppDbContext>();
             // Add postgres
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(postgresConnectionString));
+            // lock postgres setup
+            services.RemoveAll<IDistributedLockProvider>();
+            services
+                .AddSingleton<IDistributedLockProvider>(_ =>
+                    new PostgresDistributedSynchronizationProvider(postgresConnectionString));
         });
     }
 }

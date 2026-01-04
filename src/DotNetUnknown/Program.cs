@@ -43,7 +43,7 @@ services.RegisterHttpClients();
 
 services.RegisterResilience();
 
-services.RegisterLock();
+services.RegisterLock(builder.Configuration);
 
 services.AddTransient<LoggingUtils>();
 
