@@ -6,6 +6,7 @@ using DotNetUnknown.Http;
 using DotNetUnknown.Lock;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Resilience;
+using DotNetUnknown.Scheduling.Executor;
 using DotNetUnknown.Security;
 using DotNetUnknown.Transaction;
 using DotNetUnknown.Validation;
@@ -44,6 +45,8 @@ services.RegisterHttpClients();
 services.RegisterResilience();
 
 services.RegisterLock(builder.Configuration);
+
+services.AddJobExecutors(builder.Configuration);
 
 services.AddTransient<LoggingUtils>();
 
