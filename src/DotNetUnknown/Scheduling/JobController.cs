@@ -1,16 +1,19 @@
+using DotNetUnknown.Scheduling.Executor;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace DotNetUnknown.Scheduling;
 
 [ApiController]
 [Route("job")]
-public class JobController : ControllerBase
+public class JobController(
+    IOptions<Dictionary<string, CrontabOptions>> crontabOptionsDict) : ControllerBase
 {
     [HttpGet]
     [Route("{job}")]
-    public IActionResult RequiredVersionOne(string job)
+    public IActionResult Job(string job)
     {
-        return Ok(job);
+        return Ok(crontabOptionsDict);
     }
 
     // app.MapPost("/job/{job}", static async (HttpContext context, string job) =>

@@ -23,7 +23,7 @@ public abstract partial class JobExecutor : BackgroundService
         CrontabChanged(optionsMonitor.CurrentValue);
     }
 
-    public abstract string Name { get; }
+    protected abstract string Name { get; }
 
     private void CrontabChanged(Dictionary<string, CrontabOptions> optionsMonitor)
     {
@@ -31,7 +31,7 @@ public abstract partial class JobExecutor : BackgroundService
         {
             MissingCrontab(_logger, Name);
 
-            if (_state.HasSchedule()) _state = new();
+            if (_state.HasSchedule()) _state = new State();
 
             return;
         }
@@ -42,7 +42,7 @@ public abstract partial class JobExecutor : BackgroundService
         {
             CrontabError(_logger, Name, crontab.Crontab ?? string.Empty);
 
-            if (_state.HasSchedule()) _state = new();
+            if (_state.HasSchedule()) _state = new State();
 
             return;
         }
@@ -62,7 +62,7 @@ public abstract partial class JobExecutor : BackgroundService
 
             if (!state.HasSchedule()) state.TaskCompletionSource.TrySetResult();
         }
-        else if (_state.HasSchedule()) _state = new();
+        else if (_state.HasSchedule()) _state = new State();
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -87,7 +87,7 @@ public abstract partial class JobExecutor : BackgroundService
             await ExecuteOnceAsync(options, scope.ServiceProvider, cancellationToken).ConfigureAwait(false);
     }
 
-    public abstract Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
+    protected abstract Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
         CancellationToken cancellationToken);
 
     private async Task<CrontabOptions?> GetNextOccurrence()
@@ -172,9 +172,9 @@ public sealed class JobExecutor<T>(
 
     private int _isRunning;
 
-    public override string Name => typeof(T).Name;
+    protected override string Name => typeof(T).Name;
 
-    public override async Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
+    protected override async Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
         CancellationToken cancellationToken)
     {
         if (!options.AllowLocalConcurrentExecution && Interlocked.CompareExchange(ref _isRunning, 1, 0) != 0)

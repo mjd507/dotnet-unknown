@@ -29,34 +29,18 @@ public static class JobExecutorExtension
 
     public static void AddJobExecutors(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddOptions<CrontabOptionsDict>()
-            .Bind(configuration.GetSection("Crontab"))
-            .Configure<IConfiguration>(static (options, config) =>
-            {
-                foreach (var section in config.GetSection("Crontab").GetChildren())
-                {
-                    var jobName = section["JobName"] ?? throw new NullReferenceException("JobName is missing");
-                    var cron = section["Cron"];
-                    options[jobName] = string.IsNullOrWhiteSpace(cron)
-                        ? CrontabOptions.Invalid
-                        : new CrontabOptions
-                        {
-                            Crontab = cron,
-                            Jitter = section.GetValue<int>("Jitter"),
-                            AllowLocalConcurrentExecution = section.GetValue<bool>("AllowLocalConcurrentExecution"),
-                            AllowConcurrentExecution = section.GetValue<bool>("AllowConcurrentExecution"),
-                        };
-                }
-            })
-            // .UseInstanceFactory(static _ => new(StringComparer.OrdinalIgnoreCase))
-            ;
+        services.AddOptions<CrontabOptionsDict>().Bind(configuration.GetSection("Crontab"));
 
-        foreach (var type in services
-                     .Where(x => typeof(IJob).IsAssignableFrom(x.ServiceType))
-                     // .Select(x => x.GetImplementationType())
-                     .Select(x => x.GetType())
-                     .ToHashSet())
+        // foreach (var type in services
+        //              .Where(x => typeof(IJob).IsAssignableFrom(x.ServiceType))
+        //              // .Select(x => x.GetImplementationType())
+        //              .Select(x => x.GetType())
+        //              .ToHashSet())
+        var serviceProvider = services.BuildServiceProvider();
+        var jobs = serviceProvider.GetServices<IJob>();
+        foreach (var job in jobs)
         {
+            var type = job.GetType();
             var jobType = typeof(JobExecutor<>).MakeGenericType(type);
 
             services.TryAddSingleton(jobType);
