@@ -38,3 +38,10 @@ X-Api-Version: 1.0
   "MasterAccNum": 10000,
   "SubAccNum": 10001
 }
+
+### Job
+
+GET {{Api_HostAddress}}/job/Job1
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJ1c2VyLWlkLTEyMyIsInVuaXF1ZV9uYW1lIjoiYWxpY2UiLCJlbWFpbCI6ImFsaWNlQGV4YW1wbGUuY29tIiwiZW1wbG95ZWVfc3RhdHVzIjoiQWN0aXZlIiwicm9sZSI6IlVzZXIiLCJuYmYiOjE3NjQ5NDU3MTcsImV4cCI6MjcxMTYzMDUxNywiaWF0IjoxNzY0OTQ1NzE3LCJpc3MiOiJZb3VySXNzdWVyIiwiYXVkIjoiWW91ckF1ZGllbmNlIn0.zAaGkWWYMJzsa9agdL4Ug9Q9FRTYdoCqjdojhPAJMPU
+X-Api-Version: 1.0
