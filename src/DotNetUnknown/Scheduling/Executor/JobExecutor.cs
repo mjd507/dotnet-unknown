@@ -86,7 +86,7 @@ public abstract partial class JobExecutor : BackgroundService
             await ExecuteOnceAsync(options, scope.ServiceProvider, cancellationToken).ConfigureAwait(false);
     }
 
-    protected abstract Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
+    public abstract Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
         CancellationToken cancellationToken);
 
     private async Task<CrontabOptions?> GetNextOccurrence()
@@ -173,13 +173,12 @@ public sealed class JobExecutor<T>(
 
     protected override string Name => typeof(T).Name;
 
-    protected override async Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
+    public override async Task<bool?> ExecuteOnceAsync(CrontabOptions options, IServiceProvider provider,
         CancellationToken cancellationToken)
     {
         if (!options.AllowLocalConcurrentExecution && Interlocked.CompareExchange(ref _isRunning, 1, 0) != 0)
         {
             LocalConcurrentExecution(_logger, Name);
-
             return null;
         }
 
