@@ -58,7 +58,7 @@ public abstract partial class JobExecutor : BackgroundService
 
         if (schedule != ErrorSchedule)
         {
-            var state = Interlocked.Exchange(ref _state, new(schedule, crontab));
+            var state = Interlocked.Exchange(ref _state, new State(schedule, crontab));
 
             if (!state.HasSchedule()) state.TaskCompletionSource.TrySetResult();
         }
@@ -73,9 +73,8 @@ public abstract partial class JobExecutor : BackgroundService
                 var nextOccurrence = GetNextOccurrence();
                 if (await Task.WhenAny(nextOccurrence, task) == task) return;
 
-                // 如果为 null，说明之前没有配置，跳过此次执行
                 if (await nextOccurrence.ConfigureAwait(false) is { } options)
-                    _ = Task.Run(() => ExecuteOnceAsync(options, stoppingToken), stoppingToken); // 放到后台执行，不等等
+                    await ExecuteOnceAsync(options, stoppingToken);
             }
     }
 
@@ -137,7 +136,7 @@ public abstract partial class JobExecutor : BackgroundService
     [LoggerMessage(5, LogLevel.Error, "{Job} 的 Crontab 表达式 '{Crontab}' 不支持")]
     protected static partial void CrontabError(ILogger logger, string job, string crontab, System.Exception? ex = null);
 
-    [LoggerMessage(6, LogLevel.Information, "{Job} 正在本地执行")]
+    [LoggerMessage(6, LogLevel.Information, "{Job} 正在本地执行, skipping")]
     protected static partial void LocalConcurrentExecution(ILogger logger, string job);
 
     protected sealed class State
@@ -148,7 +147,7 @@ public abstract partial class JobExecutor : BackgroundService
             Options = options;
         }
 
-        public State() => TaskCompletionSource = new();
+        public State() => TaskCompletionSource = new TaskCompletionSource();
 
         public CrontabSchedule? Schedule { get; }
 

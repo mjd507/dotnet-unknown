@@ -30,26 +30,29 @@ public static class JobExecutorExtension
     public static void AddJobExecutors(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<CrontabOptionsDict>().Bind(configuration.GetSection("Crontab"));
-
-        // foreach (var type in services
-        //              .Where(x => typeof(IJob).IsAssignableFrom(x.ServiceType))
-        //              // .Select(x => x.GetImplementationType())
-        //              .Select(x => x.GetType())
-        //              .ToHashSet())
-        var serviceProvider = services.BuildServiceProvider();
-        var jobs = serviceProvider.GetServices<IJob>();
-        foreach (var job in jobs)
+        var jobDescriptors = services.Where(sd => typeof(IJob).IsAssignableFrom(sd.ServiceType)).ToList();
+        foreach (var descriptor in jobDescriptors)
         {
-            var type = job.GetType();
-            var jobType = typeof(JobExecutor<>).MakeGenericType(type);
+            var jobImplementationType = GetImplementationType(descriptor);
 
-            services.TryAddSingleton(jobType);
+            var jobExecutorType = typeof(JobExecutor<>).MakeGenericType(jobImplementationType);
 
-            services.TryAddKeyedSingleton<JobExecutor>(type.Name,
-                (provider, _) => (JobExecutor)provider.GetRequiredService(jobType));
+            services.TryAddSingleton(jobExecutorType);
+
+            services.TryAddKeyedSingleton<JobExecutor>(jobImplementationType.Name,
+                (provider, _) => (JobExecutor)provider.GetRequiredService(jobExecutorType));
 
             services.AddSingleton<IHostedService>(provider =>
-                (JobExecutor)provider.GetRequiredService(jobType));
+                (JobExecutor)provider.GetRequiredService(jobExecutorType));
         }
+    }
+
+    private static Type GetImplementationType(ServiceDescriptor descriptor)
+    {
+        return (descriptor.ImplementationType ??
+                descriptor.ImplementationInstance?.GetType() ??
+                descriptor.ImplementationFactory?.GetType()
+                    .GetMethod("Invoke")?
+                    .ReturnType) ?? throw new InvalidOperationException();
     }
 }
