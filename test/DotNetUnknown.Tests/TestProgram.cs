@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
+using Testcontainers.Kafka;
 using Testcontainers.PostgreSql;
 
 namespace DotNetUnknown.Tests;
@@ -67,6 +68,16 @@ internal sealed class TestProgram
 
             // start postgres 
             await _pgContainer.StartAsync();
+
+            // kafka
+            var kafkaContainer = new KafkaBuilder("apache/kafka:4.1.1")
+                .WithKRaft()
+                .WithHostname("localhost")
+                .WithPortBinding("9092", "9092")
+                .Build();
+            await kafkaContainer.StartAsync();
+            var bootstrapAddress = kafkaContainer.GetBootstrapAddress();
+            await TestContext.Out.WriteLineAsync("bootstrapAddress :" + bootstrapAddress);
         }
 
         // web application factory

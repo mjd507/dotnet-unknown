@@ -3,12 +3,14 @@ using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
 using DotNetUnknown.HealthCheck;
 using DotNetUnknown.Http;
+using DotNetUnknown.Kafka;
 using DotNetUnknown.Lock;
 using DotNetUnknown.Logging;
 using DotNetUnknown.Resilience;
 using DotNetUnknown.Scheduling;
 using DotNetUnknown.Scheduling.Executor;
 using DotNetUnknown.Security;
+using DotNetUnknown.Support;
 using DotNetUnknown.Transaction;
 using DotNetUnknown.Validation;
 using Microsoft.AspNetCore.Mvc.Authorization;
@@ -53,6 +55,10 @@ services.AddJobExecutors(builder.Configuration);
 services.AddTransient<LoggingUtils>();
 
 services.AddScoped<MxService>();
+
+services.AddKafka();
+
+services.AddSingleton<SpyTestSupport>();
 
 var app = builder.Build();
 
