@@ -3,7 +3,7 @@ using Confluent.Kafka.Admin;
 
 namespace DotNetUnknown.Kafka;
 
-public class KafkaConfig
+public class KafkaConfig(ILogger<KafkaConfig> logger)
 {
     public const string Topic = "test-topic";
     private const string BootstrapServers = "localhost:9092";
@@ -51,7 +51,13 @@ public class KafkaConfig
     {
         var clientConfig = CommonConfig();
         var adminClient = new AdminClientBuilder(clientConfig).Build();
-        adminClient.DeleteTopicsAsync([topic]).Wait();
+        var existingTopics = adminClient.GetMetadata(TimeSpan.FromSeconds(5)).Topics;
+        if (existingTopics.Any(t => t.Topic == topic))
+        {
+            logger.LogInformation("Topic '{Topic}' exists (Testcontainers)", topic);
+            return;
+        }
+
         adminClient.CreateTopicsAsync([new TopicSpecification { Name = topic, NumPartitions = 1 }])
             .Wait();
     }

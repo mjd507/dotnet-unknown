@@ -1,5 +1,6 @@
 using DotNetUnknown.Kafka;
-using DotNetUnknown.Support;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 
 namespace DotNetUnknown.Tests.Kafka;
@@ -16,14 +17,27 @@ internal sealed class KafkaServiceTest
     [Test]
     public async Task TestProduceAndConsume()
     {
+        // await kafka listener ready
+        var kafkaListenerBackgroundService = TestProgram.WebAppFactory.Services.GetServices<IHostedService>()
+            .OfType<KafkaService.KafkaBackgroundService>()
+            .First();
+        Assert.That(kafkaListenerBackgroundService, Is.Not.Null);
+        var startedTask =
+            await Task.WhenAny(kafkaListenerBackgroundService.ConsumerStartedTask, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.That(startedTask, Is.EqualTo(kafkaListenerBackgroundService.ConsumerStartedTask));
+        Assert.That(startedTask.IsCompletedSuccessfully, Is.True);
+
         // Given
-        var msg = "hello, this is kafka integration test";
-        var kafkaService = TestProgram.GetRequiredService<KafkaService>();
-        var spyTestSupport = TestProgram.GetRequiredService<SpyTestSupport>();
+        const string msg = "hello, this is kafka integration test";
+        var countdownEvent = new CountdownEvent(1);
+        var spyTestSupport = TestProgram.WebAppFactory.TestSupport;
+        spyTestSupport
+            .Setup(spy => spy.Ack(msg))
+            .Callback(() => countdownEvent.Signal());
         //  When
-        await kafkaService.Send(msg);
-        await Task.Delay(TimeSpan.FromSeconds(2));
+        await TestProgram.GetRequiredService<KafkaService>().Send(msg);
+        countdownEvent.Wait(TimeSpan.FromSeconds(5));
         // Then
-        Assert.That(spyTestSupport.Ack(It.IsAny<string>()), Is.True);
+        spyTestSupport.Verify(spy => spy.Ack(msg), Times.Once);
     }
 }

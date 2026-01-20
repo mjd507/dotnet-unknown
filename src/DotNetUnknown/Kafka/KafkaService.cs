@@ -3,9 +3,10 @@ using DotNetUnknown.Support;
 
 namespace DotNetUnknown.Kafka;
 
-public class KafkaService(KafkaConfig kafkaConfig, ILogger<KafkaService> logger, SpyTestSupport spyTestSupport)
+public class KafkaService(KafkaConfig kafkaConfig, ILogger<KafkaService> logger, ITestSupport testSupport)
 {
     private const string Group = "test-consumer-group";
+    private readonly TaskCompletionSource<bool> _consumerStartedTcs = new();
     private readonly KafkaConfig _kafkaConfig = kafkaConfig;
 
     public async Task Send(string message, string topic = KafkaConfig.Topic)
@@ -16,51 +17,58 @@ public class KafkaService(KafkaConfig kafkaConfig, ILogger<KafkaService> logger,
             dr.TopicPartitionOffset);
     }
 
-    public void Listener(string topic = KafkaConfig.Topic, string groupId = Group)
+    public async Task ListenerAsync(string topic = KafkaConfig.Topic, string groupId = Group,
+        CancellationToken stoppingToken = default)
     {
         using var consumer = _kafkaConfig.CreateConsumer(groupId);
 
         consumer.Subscribe(topic);
-
-        var cts = new CancellationTokenSource();
-        Console.CancelKeyPress += (_, e) =>
-        {
-            // Prevent the process from terminating.
-            e.Cancel = true;
-            cts.Cancel();
-        };
-
+        logger.LogInformation("Kafka consumer subscribed to topic: {Topic}", topic);
         try
         {
-            while (true)
+            _consumerStartedTcs.TrySetResult(true);
+
+            while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
-                    var cr = consumer.Consume(cts.Token);
+                    var cr = consumer.Consume(stoppingToken);
                     logger.LogInformation("Consumed message '{MessageValue}' at: '{CrTopicPartitionOffset}'.",
                         cr.Message.Value, cr.TopicPartitionOffset);
-                    spyTestSupport.Ack(cr.Message.Value);
+                    testSupport.Ack(cr.Message.Value);
                 }
                 catch (ConsumeException e)
                 {
-                    logger.LogInformation("Error occured: {ErrorReason}", e.Error.Reason);
+                    logger.LogError(e, "Kafka consume error: {ErrorReason}", e.Error.Reason);
                 }
             }
         }
         catch (OperationCanceledException)
         {
-            // Ensure the consumer leaves the group cleanly and final offsets are committed.
+            logger.LogInformation("Kafka consumer cancellation requested");
             consumer.Close();
+        }
+        finally
+        {
+            if (_consumerStartedTcs.Task.Status == TaskStatus.WaitingForActivation)
+            {
+                _consumerStartedTcs.TrySetException(new InvalidOperationException("Kafka consumer failed to start"));
+            }
         }
     }
 
-    public class KafkaBackgroundService(KafkaService kafkaService) : BackgroundService
+    public class KafkaBackgroundService(KafkaService kafkaService, ILogger<KafkaBackgroundService> logger)
+        : BackgroundService
     {
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        public Task ConsumerStartedTask => kafkaService._consumerStartedTcs.Task;
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            logger.LogInformation("Kafka background service starting");
             kafkaService._kafkaConfig.CreateTopic();
-            kafkaService.Listener();
-            return Task.CompletedTask;
+
+            await kafkaService.ListenerAsync(stoppingToken: stoppingToken);
+            logger.LogInformation("Kafka background service stopped");
         }
     }
 }

@@ -1,6 +1,11 @@
 namespace DotNetUnknown.Support;
 
-public class SpyTestSupport(ILogger<SpyTestSupport> logger)
+public interface ITestSupport
+{
+    public bool Ack(string message);
+}
+
+public class TestSupport(ILogger<ITestSupport> logger) : ITestSupport
 {
     public bool Ack(string message)
     {
