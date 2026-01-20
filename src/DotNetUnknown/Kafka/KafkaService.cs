@@ -66,6 +66,7 @@ public class KafkaService(KafkaConfig kafkaConfig, ILogger<KafkaService> logger,
         {
             logger.LogInformation("Kafka background service starting");
             kafkaService._kafkaConfig.CreateTopic();
+
             await kafkaService.ListenerAsync(stoppingToken: stoppingToken);
             logger.LogInformation("Kafka background service stopped");
         }
