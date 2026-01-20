@@ -51,7 +51,6 @@ public class KafkaConfig
     {
         var clientConfig = CommonConfig();
         var adminClient = new AdminClientBuilder(clientConfig).Build();
-        adminClient.DeleteTopicsAsync([topic]).Wait();
         adminClient.CreateTopicsAsync([new TopicSpecification { Name = topic, NumPartitions = 1 }])
             .Wait();
     }

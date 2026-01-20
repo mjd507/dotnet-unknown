@@ -58,7 +58,7 @@ services.AddScoped<MxService>();
 
 services.AddKafka();
 
-services.AddSingleton<SpyTestSupport>();
+services.AddSingleton<ITestSupport, TestSupport>();
 
 var app = builder.Build();
 

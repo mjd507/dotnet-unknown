@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using DotNet.Testcontainers.Builders;
 using DotNetUnknown.Aop;
 using DotNetUnknown.DbConfig;
+using DotNetUnknown.Support;
 using DotNetUnknown.Tests.Aop;
 using DotNetUnknown.Tests.Support;
 using Medallion.Threading;
@@ -137,6 +138,7 @@ internal sealed class TestProgram
 public class WebAppFactory(string postgresConnectionString) : WebApplicationFactory<Program>
 {
     public readonly Mock<MyTransactionSupport> MyTransactionSupportMock = new();
+    public readonly Mock<ITestSupport> TestSupport = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -147,6 +149,10 @@ public class WebAppFactory(string postgresConnectionString) : WebApplicationFact
             services
                 .AddScoped<MyTransactionSupport>(_ => MyTransactionSupportMock.Object)
                 .AddProxiedScoped<IMyService, MyService, MyTransactionalInterceptor>();
+            // for Mock Test Support
+            services
+                .RemoveAll<ITestSupport>()
+                .AddSingleton<ITestSupport>(_ => TestSupport.Object);
         });
 
         builder.ConfigureTestServices(services =>
