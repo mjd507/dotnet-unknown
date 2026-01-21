@@ -13,12 +13,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Moq;
 using Testcontainers.Kafka;
 using Testcontainers.PostgreSql;
+using Testcontainers.Redis;
 
 namespace DotNetUnknown.Tests;
 
@@ -29,7 +31,6 @@ internal sealed class TestProgram
     public static HttpClient HttpClient;
 
     private static bool _isDockerAvailable;
-    private PostgreSqlContainer? _pgContainer;
 
     private static async Task<bool> CheckDockerAvailability()
     {
@@ -59,9 +60,12 @@ internal sealed class TestProgram
     {
         await TestContext.Out.WriteLineAsync("TestProgram Setup...");
         _isDockerAvailable = await CheckDockerAvailability();
+        var postgresConnectionString = string.Empty;
+        var kafkaConnectionString = string.Empty;
+        var redisConnectionString = string.Empty;
         if (_isDockerAvailable)
         {
-            _pgContainer = new PostgreSqlBuilder("postgres:11")
+            var pgContainer = new PostgreSqlBuilder("postgres:11")
                 .WithDatabase("mydatabase")
                 .WithUsername("myuser")
                 .WithPassword("secret")
@@ -70,21 +74,32 @@ internal sealed class TestProgram
                 .Build();
 
             // start postgres 
-            await _pgContainer.StartAsync();
-
+            await pgContainer.StartAsync();
+            postgresConnectionString = pgContainer.GetConnectionString();
             // kafka
             var kafkaContainer = new KafkaBuilder("apache/kafka:4.1.1")
                 .WithKRaft()
-                .WithHostname("localhost")
-                .WithPortBinding("9092", "9092")
                 .Build();
             await kafkaContainer.StartAsync();
-            var bootstrapAddress = kafkaContainer.GetBootstrapAddress();
-            await TestContext.Out.WriteLineAsync("bootstrapAddress :" + bootstrapAddress);
+            kafkaConnectionString = kafkaContainer.GetBootstrapAddress();
+
+            // redis
+            var redisContainer = new RedisBuilder("redis:8.4.0")
+                .Build();
+            await redisContainer.StartAsync();
+            redisConnectionString = redisContainer.GetConnectionString();
         }
 
+        var connectionString = new ConnectionString(
+            postgresConnectionString,
+            kafkaConnectionString,
+            redisConnectionString
+        );
+
+        await TestContext.Out.WriteLineAsync("connectionStrings :" + connectionString);
+
         // web application factory
-        WebAppFactory = new WebAppFactory(_pgContainer?.GetConnectionString() ?? string.Empty, _isDockerAvailable);
+        WebAppFactory = new WebAppFactory(connectionString, _isDockerAvailable);
         // http client for mvc test use
         HttpClient = WebAppFactory.CreateClient();
         ConfigureDefaultHttpClient();
@@ -95,10 +110,6 @@ internal sealed class TestProgram
     {
         HttpClient.Dispose();
         await WebAppFactory.DisposeAsync();
-        if (_pgContainer != null)
-        {
-            await _pgContainer.DisposeAsync();
-        }
 
         await TestContext.Out.WriteLineAsync("TestProgram Teared Down...");
     }
@@ -137,7 +148,9 @@ internal sealed class TestProgram
     }
 }
 
-public class WebAppFactory(string postgresConnectionString, bool isDockerAvailable) : WebApplicationFactory<Program>
+public record ConnectionString(string Postgres, string Kafka, string Redis);
+
+public class WebAppFactory(ConnectionString connectionString, bool isDockerAvailable) : WebApplicationFactory<Program>
 {
     public readonly Mock<MyTransactionSupport> MyTransactionSupportMock = new();
     public readonly Mock<ITestSupport> TestSupport = new();
@@ -163,12 +176,15 @@ public class WebAppFactory(string postgresConnectionString, bool isDockerAvailab
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<AppDbContext>();
             // Add postgres
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(postgresConnectionString));
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString.Postgres));
             // lock postgres setup
             services.RemoveAll<IDistributedLockProvider>();
             services
                 .AddSingleton<IDistributedLockProvider>(_ =>
-                    new PostgresDistributedSynchronizationProvider(postgresConnectionString));
+                    new PostgresDistributedSynchronizationProvider(connectionString.Postgres));
+            // kafka
+            services.RemoveAll<KafkaOptions>();
+            services.Configure<KafkaOptions>(options => { options.BootstrapServers = connectionString.Kafka; });
             if (!isDockerAvailable)
             {
                 // remove kafka background service, prevent connection err
@@ -177,6 +193,14 @@ public class WebAppFactory(string postgresConnectionString, bool isDockerAvailab
                                          && d.ImplementationType == typeof(KafkaService.KafkaBackgroundService))!;
                 services.Remove(toRemove);
             }
+
+            // redis
+            services.RemoveAll<IDistributedCache>();
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = connectionString.Redis;
+                options.InstanceName = "DotNetUnknown:";
+            });
         });
     }
 }

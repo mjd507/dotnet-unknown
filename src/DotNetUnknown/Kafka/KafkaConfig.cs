@@ -1,18 +1,23 @@
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
+using Microsoft.Extensions.Options;
 
 namespace DotNetUnknown.Kafka;
 
-public class KafkaConfig(ILogger<KafkaConfig> logger)
+public class KafkaOptions
+{
+    public required string BootstrapServers { get; set; }
+}
+
+public class KafkaConfig(ILogger<KafkaConfig> logger, IOptions<KafkaOptions> kafkaOptions)
 {
     public const string Topic = "test-topic";
-    private const string BootstrapServers = "localhost:9092";
 
-    private static ClientConfig CommonConfig()
+    private ClientConfig CommonConfig()
     {
         var config = new ClientConfig
         {
-            BootstrapServers = BootstrapServers,
+            BootstrapServers = kafkaOptions.Value.BootstrapServers
         };
         return config;
     }

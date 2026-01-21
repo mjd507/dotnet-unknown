@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
+        <TestcontainersVersion>4.10.0</TestcontainersVersion>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,8 +17,9 @@
         <PackageReference Include="NUnit" Version="4.4.0"/>
         <PackageReference Include="NUnit.Analyzers" Version="4.11.2"/>
         <PackageReference Include="NUnit3TestAdapter" Version="6.1.0"/>
-        <PackageReference Include="Testcontainers.PostgreSql" Version="4.10.0"/>
-        <PackageReference Include="Testcontainers.Kafka" Version="4.10.0"/>
+        <PackageReference Include="Testcontainers.PostgreSql" Version="$(TestcontainersVersion)"/>
+        <PackageReference Include="Testcontainers.Kafka" Version="$(TestcontainersVersion)"/>
+        <PackageReference Include="Testcontainers.Redis" Version="$(TestcontainersVersion)"/>
     </ItemGroup>
 
     <ItemGroup>
