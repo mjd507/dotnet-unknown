@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using DotNet.Testcontainers.Builders;
 using DotNetUnknown.Aop;
 using DotNetUnknown.DbConfig;
+using DotNetUnknown.Kafka;
 using DotNetUnknown.Support;
 using DotNetUnknown.Tests.Aop;
 using DotNetUnknown.Tests.Support;
@@ -14,6 +15,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Testcontainers.Kafka;
 using Testcontainers.PostgreSql;
@@ -82,7 +84,7 @@ internal sealed class TestProgram
         }
 
         // web application factory
-        WebAppFactory = new WebAppFactory(_pgContainer?.GetConnectionString() ?? string.Empty);
+        WebAppFactory = new WebAppFactory(_pgContainer?.GetConnectionString() ?? string.Empty, _isDockerAvailable);
         // http client for mvc test use
         HttpClient = WebAppFactory.CreateClient();
         ConfigureDefaultHttpClient();
@@ -135,7 +137,7 @@ internal sealed class TestProgram
     }
 }
 
-public class WebAppFactory(string postgresConnectionString) : WebApplicationFactory<Program>
+public class WebAppFactory(string postgresConnectionString, bool isDockerAvailable) : WebApplicationFactory<Program>
 {
     public readonly Mock<MyTransactionSupport> MyTransactionSupportMock = new();
     public readonly Mock<ITestSupport> TestSupport = new();
@@ -167,6 +169,14 @@ public class WebAppFactory(string postgresConnectionString) : WebApplicationFact
             services
                 .AddSingleton<IDistributedLockProvider>(_ =>
                     new PostgresDistributedSynchronizationProvider(postgresConnectionString));
+            if (!isDockerAvailable)
+            {
+                // remove kafka background service, prevent connection err
+                var toRemove = services
+                    .FirstOrDefault(d => d.ServiceType == typeof(IHostedService)
+                                         && d.ImplementationType == typeof(KafkaService.KafkaBackgroundService))!;
+                services.Remove(toRemove);
+            }
         });
     }
 }
