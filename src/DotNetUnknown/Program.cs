@@ -1,4 +1,5 @@
 ﻿using Asp.Versioning;
+using DotNetUnknown.Caching;
 using DotNetUnknown.DbConfig;
 using DotNetUnknown.Exception;
 using DotNetUnknown.HealthCheck;
@@ -59,6 +60,8 @@ services.AddScoped<MxService>();
 services.AddKafka();
 
 services.AddSingleton<ITestSupport, TestSupport>();
+
+services.AddCaching(builder.Configuration);
 
 var app = builder.Build();
 

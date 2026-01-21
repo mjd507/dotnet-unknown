@@ -30,14 +30,15 @@ internal sealed class KafkaServiceTest
         // Given
         const string msg = "hello, this is kafka integration test";
         var countdownEvent = new CountdownEvent(1);
-        var spyTestSupport = TestProgram.WebAppFactory.TestSupport;
-        spyTestSupport
+        var testSupport = TestProgram.WebAppFactory.TestSupport;
+        testSupport.Invocations.Clear();
+        testSupport
             .Setup(spy => spy.Ack(msg))
             .Callback(() => countdownEvent.Signal());
         //  When
         await TestProgram.GetRequiredService<KafkaService>().Send(msg);
         countdownEvent.Wait(TimeSpan.FromSeconds(5));
         // Then
-        spyTestSupport.Verify(spy => spy.Ack(msg), Times.Once);
+        testSupport.Verify(spy => spy.Ack(msg), Times.Once);
     }
 }
