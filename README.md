@@ -1,0 +1,1 @@
+personal practice for [everything unknown](https://github.com/mjd507/dotnet-unknown/issues/3) in dotnet. 
