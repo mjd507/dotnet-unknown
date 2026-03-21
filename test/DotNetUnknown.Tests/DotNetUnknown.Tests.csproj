@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <TestcontainersVersion>4.10.0</TestcontainersVersion>
+        <TestcontainersVersion>4.11.0</TestcontainersVersion>
     </PropertyGroup>
 
     <ItemGroup>
