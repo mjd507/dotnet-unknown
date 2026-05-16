@@ -5,7 +5,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <MicrosoftAspNetCoreVersion>10.0.7</MicrosoftAspNetCoreVersion>
+        <MicrosoftAspNetCoreVersion>10.0.8</MicrosoftAspNetCoreVersion>
         <MicrosoftExtensionsVersion>10.0.7</MicrosoftExtensionsVersion>
     </PropertyGroup>
 
