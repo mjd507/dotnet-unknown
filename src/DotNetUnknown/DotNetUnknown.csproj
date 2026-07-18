@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <MicrosoftAspNetCoreVersion>10.0.10</MicrosoftAspNetCoreVersion>
-        <MicrosoftExtensionsVersion>10.0.9</MicrosoftExtensionsVersion>
+        <MicrosoftExtensionsVersion>10.0.10</MicrosoftExtensionsVersion>
     </PropertyGroup>
 
     <ItemGroup>
